@@ -1,0 +1,51 @@
+TROJAN DEFENDER - SECURITY ALERT
+=================================
+
+⚠️  THREAT DETECTED ⚠️
+
+Hello {{ user.first_name|default:user.username }},
+
+Our security scan has detected {{ threats|length }} threat{{ threats|length|pluralize }} in the file you uploaded. Immediate attention is required to ensure your system's security.
+
+SCAN DETAILS:
+-------------
+File Name: {{ scan_result.file_name }}
+File Size: {{ scan_result.file_size|filesizeformat }}
+Scan Date: {{ scan_result.scan_date|date:"F d, Y H:i" }}
+Threat Level: {{ scan_result.get_threat_level_display|upper }}
+
+DETECTED THREATS:
+-----------------
+{% for threat in threats %}
+{{ forloop.counter }}. {{ threat.threat_name }}
+   Type: {{ threat.get_threat_type_display }}
+   Severity: {{ threat.get_severity_display }}
+   {% if threat.description %}Description: {{ threat.description }}{% endif %}
+   {% if threat.file_path %}Location: {{ threat.file_path }}{% endif %}
+
+{% endfor %}
+RECOMMENDED ACTIONS:
+--------------------
+• IMMEDIATE: Do not execute or open the scanned file
+• QUARANTINE: Move the file to a secure, isolated location
+• SYSTEM SCAN: Run a full system scan to check for related threats
+• UPDATE: Ensure your antivirus definitions are up to date
+• REVIEW: Check the detailed scan report for more information
+
+IMPORTANT SECURITY NOTICE:
+--------------------------
+This file contains malicious content that could harm your computer or compromise your data. Please follow the recommended actions above and avoid opening or executing this file.
+
+ACTIONS:
+--------
+View Detailed Report: {{ app_url }}/scan-result/{{ scan_result.id }}/
+Go to Dashboard: {{ app_url }}/dashboard/
+
+---
+This is an automated security alert from Trojan Defender.
+If you believe this is a false positive, please contact our support team.
+
+© {{ "now"|date:"Y" }} Trojan Defender. All rights reserved.
+
+Manage Email Preferences: {{ app_url }}/settings/notifications/
+Contact Support: {{ app_url }}/support/

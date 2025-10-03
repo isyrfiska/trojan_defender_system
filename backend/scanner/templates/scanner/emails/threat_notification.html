@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Detection Alert - Trojan Defender</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e74c3c;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .alert-badge {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .scan-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .threat-list {
+            background-color: #fff5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #e74c3c;
+        }
+        .threat-item {
+            background-color: #ffffff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .threat-name {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+        .threat-details {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        .severity-high {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        .severity-medium {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+        .severity-low {
+            background-color: #f3e5f5;
+            border-left: 4px solid #9c27b0;
+        }
+        .action-section {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #4caf50;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 10px 10px 10px 0;
+        }
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🛡️ Trojan Defender</div>
+            <div class="alert-badge">⚠️ THREAT DETECTED</div>
+        </div>
+
+        <h2>Security Alert: Threats Detected in Your File</h2>
+        
+        <p>Hello {{ user.first_name|default:user.username }},</p>
+        
+        <p>Our security scan has detected <strong>{{ threats|length }} threat{{ threats|length|pluralize }}</strong> in the file you uploaded. Immediate attention is required to ensure your system's security.</p>
+
+        <div class="scan-info">
+            <h3>📄 Scan Details</h3>
+            <p><strong>File Name:</strong> {{ scan_result.file_name }}</p>
+            <p><strong>File Size:</strong> {{ scan_result.file_size|filesizeformat }}</p>
+            <p><strong>Scan Date:</strong> {{ scan_result.scan_date|date:"F d, Y H:i" }}</p>
+            <p><strong>Threat Level:</strong> 
+                <span style="color: {% if scan_result.threat_level == 'high' %}#e74c3c{% elif scan_result.threat_level == 'medium' %}#f39c12{% else %}#9b59b6{% endif %}; font-weight: bold;">
+                    {{ scan_result.get_threat_level_display|upper }}
+                </span>
+            </p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">{{ threats|length }}</div>
+                <div class="stat-label">Threats Found</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ scan_result.scan_duration|default:"N/A" }}</div>
+                <div class="stat-label">Scan Duration</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">{{ scan_result.get_threat_level_display }}</div>
+                <div class="stat-label">Risk Level</div>
+            </div>
+        </div>
+
+        <div class="threat-list">
+            <h3>🦠 Detected Threats</h3>
+            {% for threat in threats %}
+            <div class="threat-item severity-{{ threat.severity|lower }}">
+                <div class="threat-name">{{ threat.threat_name }}</div>
+                <div class="threat-details">
+                    <p><strong>Type:</strong> {{ threat.get_threat_type_display }}</p>
+                    <p><strong>Severity:</strong> {{ threat.get_severity_display }}</p>
+                    {% if threat.description %}
+                    <p><strong>Description:</strong> {{ threat.description }}</p>
+                    {% endif %}
+                    {% if threat.file_path %}
+                    <p><strong>Location:</strong> {{ threat.file_path }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="action-section">
+            <h3>🔧 Recommended Actions</h3>
+            <ul>
+                <li><strong>Immediate:</strong> Do not execute or open the scanned file</li>
+                <li><strong>Quarantine:</strong> Move the file to a secure, isolated location</li>
+                <li><strong>System Scan:</strong> Run a full system scan to check for related threats</li>
+                <li><strong>Update:</strong> Ensure your antivirus definitions are up to date</li>
+                <li><strong>Review:</strong> Check the detailed scan report for more information</li>
+            </ul>
+            
+            <div style="margin-top: 20px;">
+                <a href="{{ app_url }}/scan-result/{{ scan_result.id }}/" class="btn">View Detailed Report</a>
+                <a href="{{ app_url }}/dashboard/" class="btn btn-danger">Go to Dashboard</a>
+            </div>
+        </div>
+
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #856404;">⚠️ Important Security Notice</h4>
+            <p style="margin-bottom: 0; color: #856404;">This file contains malicious content that could harm your computer or compromise your data. Please follow the recommended actions above and avoid opening or executing this file.</p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated security alert from Trojan Defender.</p>
+            <p>If you believe this is a false positive, please contact our support team.</p>
+            <p>© {{ "now"|date:"Y" }} Trojan Defender. All rights reserved.</p>
+            <p style="margin-top: 10px;">
+                <a href="{{ app_url }}/settings/notifications/" style="color: #666; text-decoration: none;">Manage Email Preferences</a> | 
+                <a href="{{ app_url }}/support/" style="color: #666; text-decoration: none;">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,748 @@
+swagger: '2.0'
+info:
+  title: Trojan Defender API
+  description: |
+    API for Trojan Defender malware scanning and threat intelligence platform.
+    
+    ## Authentication
+    This API uses JWT (JSON Web Token) authentication. To authenticate:
+    
+    1. **Get Token**: POST to `/api/auth/login/` with username/password
+    2. **Use Token**: Include `Authorization: Bearer <your_token>` in headers
+    3. **Refresh Token**: POST to `/api/auth/token/refresh/` when token expires
+    
+    ## Bearer Token Usage
+    Click the **Authorize** button below and enter: `Bearer <your_access_token>`
+    
+    ## Error Handling
+    All endpoints return consistent error responses with appropriate HTTP status codes.
+    Error responses include detailed error messages and validation information.
+    
+    ## Rate Limiting
+    API endpoints are rate-limited to prevent abuse. Rate limit headers are included in responses.
+  version: v1.2.0
+  termsOfService: https://www.trojandefender.com/terms/
+  contact:
+    email: support@trojandefender.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+
+host: localhost:8000
+basePath: /api
+schemes:
+  - http
+  - https
+
+# Security Definitions
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: |
+      JWT Authorization header using the Bearer scheme.
+      
+      Enter 'Bearer' [space] and then your token in the text input below.
+      
+      Example: "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+
+# Global security requirement
+security:
+  - Bearer: []
+
+# Content Types
+consumes:
+  - application/json
+  - multipart/form-data
+produces:
+  - application/json
+
+# API Paths
+paths:
+  # Authentication Endpoints
+  /auth/login/:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: Authenticate user and get JWT tokens
+      security: []  # No auth required for login
+      parameters:
+        - name: credentials
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+                example: "admin"
+              password:
+                type: string
+                format: password
+                example: "your_password"
+      responses:
+        200:
+          description: Login successful
+          schema:
+            type: object
+            properties:
+              access:
+                type: string
+                description: JWT access token
+              refresh:
+                type: string
+                description: JWT refresh token
+              user:
+                $ref: '#/definitions/User'
+        400:
+          description: Invalid credentials
+        401:
+          description: Authentication failed
+
+  /auth/token/refresh/:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh JWT Token
+      description: Get new access token using refresh token
+      security: []
+      parameters:
+        - name: refresh_token
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - refresh
+            properties:
+              refresh:
+                type: string
+                description: JWT refresh token
+      responses:
+        200:
+          description: Token refreshed successfully
+          schema:
+            type: object
+            properties:
+              access:
+                type: string
+                description: New JWT access token
+        401:
+          description: Invalid refresh token
+
+  /auth/register/:
+    post:
+      tags:
+        - Authentication
+      summary: User Registration
+      description: Register a new user account
+      security: []
+      parameters:
+        - name: user_data
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - username
+              - email
+              - password
+            properties:
+              username:
+                type: string
+                minLength: 3
+                maxLength: 150
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+                minLength: 8
+              first_name:
+                type: string
+              last_name:
+                type: string
+      responses:
+        201:
+          description: User registered successfully
+          schema:
+            $ref: '#/definitions/User'
+        400:
+          description: Validation errors
+
+  /auth/profile/:
+    get:
+      tags:
+        - Authentication
+      summary: Get User Profile
+      description: Retrieve current user profile information
+      responses:
+        200:
+          description: User profile retrieved
+          schema:
+            $ref: '#/definitions/User'
+    put:
+      tags:
+        - Authentication
+      summary: Update User Profile
+      description: Update current user profile information
+      parameters:
+        - name: profile_data
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              first_name:
+                type: string
+              last_name:
+                type: string
+              email:
+                type: string
+                format: email
+      responses:
+        200:
+          description: Profile updated successfully
+          schema:
+            $ref: '#/definitions/User'
+
+  /auth/change-password/:
+    post:
+      tags:
+        - Authentication
+      summary: Change Password
+      description: Change user password
+      parameters:
+        - name: password_data
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - old_password
+              - new_password
+            properties:
+              old_password:
+                type: string
+              new_password:
+                type: string
+                minLength: 8
+      responses:
+        200:
+          description: Password changed successfully
+        400:
+          description: Invalid password data
+
+  /auth/token/status/:
+    get:
+      tags:
+        - Authentication
+      summary: Check Token Status
+      description: Check if current token is valid and get expiration info
+      responses:
+        200:
+          description: Token status information
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+              expires_at:
+                type: string
+                format: date-time
+              user_id:
+                type: integer
+
+  # Scanner Endpoints
+  /scanner/upload/:
+    post:
+      tags:
+        - Scanner
+      summary: Upload File for Scanning
+      description: Upload a file to be scanned for malware
+      consumes:
+        - multipart/form-data
+      parameters:
+        - name: file
+          in: formData
+          type: file
+          required: true
+          description: File to be scanned
+        - name: scan_options
+          in: formData
+          type: string
+          description: JSON string of scan options
+      responses:
+        201:
+          description: File uploaded and scan initiated
+          schema:
+            $ref: '#/definitions/ScanResult'
+        400:
+          description: Invalid file or scan options
+
+  /scanner/results/:
+    get:
+      tags:
+        - Scanner
+      summary: List Scan Results
+      description: Retrieve paginated list of scan results
+      parameters:
+        - name: page
+          in: query
+          type: integer
+          description: Page number
+        - name: page_size
+          in: query
+          type: integer
+          description: Number of results per page
+        - name: status
+          in: query
+          type: string
+          enum: ["pending", "scanning", "completed", "failed"]
+          description: Filter by scan status
+        - name: threat_level
+          in: query
+          type: string
+          enum: ["clean", "low", "medium", "high", "critical"]
+          description: Filter by threat level
+      responses:
+        200:
+          description: Scan results retrieved successfully
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              next:
+                type: string
+                nullable: true
+              previous:
+                type: string
+                nullable: true
+              results:
+                type: array
+                items:
+                  $ref: '#/definitions/ScanResult'
+
+  /scanner/results/{id}/:
+    get:
+      tags:
+        - Scanner
+      summary: Get Specific Scan Result
+      description: Retrieve detailed information about a specific scan
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+          description: Scan result ID
+      responses:
+        200:
+          description: Scan result details
+          schema:
+            $ref: '#/definitions/ScanResult'
+        404:
+          description: Scan result not found
+
+  /scanner/stats/:
+    get:
+      tags:
+        - Scanner
+      summary: Get Scan Statistics
+      description: Retrieve scanning statistics and metrics
+      responses:
+        200:
+          description: Scan statistics
+          schema:
+            type: object
+            properties:
+              total_scans:
+                type: integer
+              clean_files:
+                type: integer
+              threats_detected:
+                type: integer
+              scan_history:
+                type: array
+                items:
+                  type: object
+
+  # Threat Map Endpoints
+  /threatmap/threats/:
+    get:
+      tags:
+        - Threat Map
+      summary: Get Threat Events
+      description: Retrieve threat events for map visualization
+      parameters:
+        - name: time_range
+          in: query
+          type: string
+          enum: ["1h", "24h", "7d", "30d"]
+          default: "24h"
+        - name: threat_type
+          in: query
+          type: string
+          description: Filter by threat type
+        - name: severity
+          in: query
+          type: string
+          enum: ["low", "medium", "high", "critical"]
+      responses:
+        200:
+          description: Threat events retrieved
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ThreatEvent'
+
+  /threatmap/stats/:
+    get:
+      tags:
+        - Threat Map
+      summary: Get Global Threat Statistics
+      description: Retrieve global threat statistics
+      responses:
+        200:
+          description: Global threat statistics
+          schema:
+            type: object
+            properties:
+              total_threats:
+                type: integer
+              active_threats:
+                type: integer
+              threat_by_country:
+                type: object
+              threat_trends:
+                type: array
+
+  # Threat Intelligence Endpoints
+  /threat-intelligence/threats/:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: List Threat Intelligence
+      description: Retrieve threat intelligence data
+      parameters:
+        - name: threat_type
+          in: query
+          type: string
+        - name: severity
+          in: query
+          type: string
+          enum: ["low", "medium", "high", "critical"]
+        - name: source
+          in: query
+          type: string
+      responses:
+        200:
+          description: Threat intelligence data
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ThreatIntelligence'
+
+  /threat-intelligence/events/:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: List Threat Events
+      description: Retrieve threat events from various sources
+      responses:
+        200:
+          description: Threat events
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ThreatEvent'
+
+  /threat-intelligence/dashboard/stats/:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: Dashboard Statistics
+      description: Get threat intelligence dashboard statistics
+      responses:
+        200:
+          description: Dashboard statistics
+          schema:
+            type: object
+            properties:
+              total_threats:
+                type: integer
+              new_threats_today:
+                type: integer
+              threat_categories:
+                type: object
+
+  /threat-intelligence/check-ips/:
+    post:
+      tags:
+        - Threat Intelligence
+      summary: Check IP Addresses
+      description: Check multiple IP addresses against threat intelligence
+      parameters:
+        - name: ip_data
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+              - ips
+            properties:
+              ips:
+                type: array
+                items:
+                  type: string
+                  format: ipv4
+      responses:
+        200:
+          description: IP check results
+          schema:
+            type: object
+            properties:
+              results:
+                type: array
+                items:
+                  type: object
+
+  # Notifications Endpoints
+  /notifications/:
+    get:
+      tags:
+        - Notifications
+      summary: List Notifications
+      description: Retrieve user notifications
+      parameters:
+        - name: unread_only
+          in: query
+          type: boolean
+          default: false
+      responses:
+        200:
+          description: Notifications retrieved
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Notification'
+
+  /notifications/{id}/:
+    patch:
+      tags:
+        - Notifications
+      summary: Mark Notification as Read
+      description: Mark a specific notification as read
+      parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Notification updated
+          schema:
+            $ref: '#/definitions/Notification'
+
+  # Health Check Endpoints
+  /health/:
+    get:
+      tags:
+        - Health
+      summary: Basic Health Check
+      description: Check if the API is running
+      security: []
+      responses:
+        200:
+          description: API is healthy
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: "healthy"
+              timestamp:
+                type: string
+                format: date-time
+
+  /health/detailed/:
+    get:
+      tags:
+        - Health
+      summary: Detailed Health Check
+      description: Detailed health check including database and services
+      responses:
+        200:
+          description: Detailed health status
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              database:
+                type: string
+              redis:
+                type: string
+              celery:
+                type: string
+
+# Definitions
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      username:
+        type: string
+      email:
+        type: string
+        format: email
+      first_name:
+        type: string
+      last_name:
+        type: string
+      date_joined:
+        type: string
+        format: date-time
+      is_active:
+        type: boolean
+
+  ScanResult:
+    type: object
+    properties:
+      id:
+        type: integer
+      file_name:
+        type: string
+      file_size:
+        type: integer
+      file_hash:
+        type: string
+      scan_status:
+        type: string
+        enum: ["pending", "scanning", "completed", "failed"]
+      threat_level:
+        type: string
+        enum: ["clean", "low", "medium", "high", "critical"]
+      scan_date:
+        type: string
+        format: date-time
+      scan_duration:
+        type: number
+      threats_found:
+        type: array
+        items:
+          $ref: '#/definitions/Threat'
+      scan_engines:
+        type: object
+      user:
+        type: integer
+
+  Threat:
+    type: object
+    properties:
+      id:
+        type: integer
+      threat_name:
+        type: string
+      threat_type:
+        type: string
+      severity:
+        type: string
+        enum: ["low", "medium", "high", "critical"]
+      description:
+        type: string
+      detected_by:
+        type: string
+      confidence_score:
+        type: number
+        minimum: 0
+        maximum: 1
+
+  ThreatEvent:
+    type: object
+    properties:
+      id:
+        type: integer
+      event_type:
+        type: string
+      source_ip:
+        type: string
+      destination_ip:
+        type: string
+      country:
+        type: string
+      city:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      timestamp:
+        type: string
+        format: date-time
+      severity:
+        type: string
+        enum: ["low", "medium", "high", "critical"]
+
+  ThreatIntelligence:
+    type: object
+    properties:
+      id:
+        type: integer
+      threat_type:
+        type: string
+      indicator:
+        type: string
+      source:
+        type: string
+      confidence:
+        type: number
+      first_seen:
+        type: string
+        format: date-time
+      last_seen:
+        type: string
+        format: date-time
+      tags:
+        type: array
+        items:
+          type: string
+
+  Notification:
+    type: object
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      message:
+        type: string
+      notification_type:
+        type: string
+      is_read:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      user:
+        type: integer
+
+  Error:
+    type: object
+    properties:
+      error:
+        type: string
+        description: Error message
+      detail:
+        type: string
+        description: Detailed error information
+      code:
+        type: string
+        description: Error code

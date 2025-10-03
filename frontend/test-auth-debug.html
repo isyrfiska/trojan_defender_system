@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Debug Test</title>
+</head>
+<body>
+    <h1>Authentication Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        function checkAuthState() {
+            const results = document.getElementById('results');
+            
+            // Check localStorage
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('userData');
+            const refreshToken = localStorage.getItem('refreshToken');
+            
+            let html = '<h2>LocalStorage Contents:</h2>';
+            html += `<p><strong>Token:</strong> ${token ? token.substring(0, 50) + '...' : 'Not found'}</p>`;
+            html += `<p><strong>Refresh Token:</strong> ${refreshToken ? refreshToken.substring(0, 50) + '...' : 'Not found'}</p>`;
+            html += `<p><strong>User Data:</strong> ${userData || 'Not found'}</p>`;
+            
+            // Test API call
+            html += '<h2>API Test:</h2>';
+            html += '<div id="api-test">Testing...</div>';
+            
+            results.innerHTML = html;
+            
+            // Test API call with token
+            if (token) {
+                fetch('/api/scanner/stats/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    document.getElementById('api-test').innerHTML = 
+                        `<p>API Response Status: ${response.status}</p>
+                         <p>Response OK: ${response.ok}</p>`;
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('api-test').innerHTML += 
+                        `<p>Response Data: ${JSON.stringify(data, null, 2)}</p>`;
+                })
+                .catch(error => {
+                    document.getElementById('api-test').innerHTML += 
+                        `<p>Error: ${error.message}</p>`;
+                });
+            } else {
+                document.getElementById('api-test').innerHTML = 
+                    '<p>No token found - cannot test API</p>';
+            }
+        }
+        
+        // Run check when page loads
+        window.onload = checkAuthState;
+        
+        // Add button to refresh check
+        document.body.innerHTML += '<button onclick="checkAuthState()">Refresh Check</button>';
+    </script>
+</body>
+</html>

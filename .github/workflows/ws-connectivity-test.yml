@@ -1,0 +1,73 @@
+name: WS Connectivity Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ws-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Apply migrations and seed test users
+        working-directory: backend
+        env:
+          SECRET_KEY: dummy-ci-secret-key-please-change
+          DEBUG: '1'
+          DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,[::1]
+          CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+        run: |
+          python manage.py migrate --noinput
+          python manage.py create_test_user --all
+
+      - name: Start ASGI server (daphne)
+        working-directory: backend
+        env:
+          SECRET_KEY: dummy-ci-secret-key-please-change
+          DEBUG: '1'
+          DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,[::1]
+          CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+        run: |
+          nohup daphne trojan_defender.asgi:application --port 8000 > daphne.log 2>&1 &
+          python - <<'PY'
+          import socket, time
+          def wait_port(port, host="127.0.0.1", timeout=60):
+              start=time.time()
+              while time.time()-start < timeout:
+                  with socket.socket() as s:
+                      try:
+                          s.settimeout(1)
+                          s.connect((host, port))
+                          print("ASGI server is up")
+                          break
+                      except Exception:
+                          time.sleep(1)
+              else:
+                  raise SystemExit("ASGI server did not start within timeout")
+          wait_port(8000)
+          PY
+
+      - name: Run WebSocket connectivity test script
+        run: |
+          python backend/ws_connectivity_test.py
+
+      - name: Upload daphne logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daphne-logs
+          path: backend/daphne.log

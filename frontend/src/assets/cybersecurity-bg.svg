@@ -1,0 +1,123 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:0.8" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+  
+  <!-- Circuit pattern background -->
+  <g opacity="0.1">
+    <path d="M100 200 L300 200 L300 400 L500 400" stroke="#64748b" stroke-width="2" fill="none"/>
+    <path d="M200 100 L200 300 L400 300 L400 500" stroke="#64748b" stroke-width="2" fill="none"/>
+    <path d="M600 150 L800 150 L800 350 L1000 350" stroke="#64748b" stroke-width="2" fill="none"/>
+    <path d="M700 50 L700 250 L900 250 L900 450" stroke="#64748b" stroke-width="2" fill="none"/>
+    <path d="M1200 300 L1400 300 L1400 500 L1600 500" stroke="#64748b" stroke-width="2" fill="none"/>
+    <path d="M1300 200 L1300 400 L1500 400 L1500 600" stroke="#64748b" stroke-width="2" fill="none"/>
+    
+    <!-- Circuit nodes -->
+    <circle cx="300" cy="200" r="4" fill="#64748b"/>
+    <circle cx="300" cy="400" r="4" fill="#64748b"/>
+    <circle cx="200" cy="300" r="4" fill="#64748b"/>
+    <circle cx="400" cy="300" r="4" fill="#64748b"/>
+    <circle cx="800" cy="150" r="4" fill="#64748b"/>
+    <circle cx="800" cy="350" r="4" fill="#64748b"/>
+    <circle cx="700" cy="250" r="4" fill="#64748b"/>
+    <circle cx="900" cy="250" r="4" fill="#64748b"/>
+    <circle cx="1400" cy="300" r="4" fill="#64748b"/>
+    <circle cx="1400" cy="500" r="4" fill="#64748b"/>
+    <circle cx="1300" cy="400" r="4" fill="#64748b"/>
+    <circle cx="1500" cy="400" r="4" fill="#64748b"/>
+  </g>
+  
+  <!-- Main shield icon -->
+  <g transform="translate(960, 540)" filter="url(#glow)">
+    <path d="M-60 -80 Q-60 -100 -40 -100 L40 -100 Q60 -100 60 -80 L60 20 Q60 40 40 50 L0 70 L-40 50 Q-60 40 -60 20 Z" 
+          fill="url(#shieldGradient)" stroke="#3b82f6" stroke-width="2"/>
+    
+    <!-- Lock icon inside shield -->
+    <g transform="translate(0, -20)">
+      <rect x="-15" y="0" width="30" height="25" rx="3" fill="#ffffff" opacity="0.9"/>
+      <path d="M-10 0 L-10 -8 Q-10 -15 0 -15 Q10 -15 10 -8 L10 0" 
+            stroke="#ffffff" stroke-width="3" fill="none" opacity="0.9"/>
+      <circle cx="0" cy="8" r="3" fill="#3b82f6"/>
+      <rect x="-1" y="11" width="2" height="6" fill="#3b82f6"/>
+    </g>
+  </g>
+  
+  <!-- Floating security icons -->
+  <g opacity="0.6">
+    <!-- Key icon -->
+    <g transform="translate(300, 300)">
+      <circle cx="0" cy="0" r="8" fill="none" stroke="#60a5fa" stroke-width="2"/>
+      <circle cx="0" cy="0" r="3" fill="#60a5fa"/>
+      <path d="M8 0 L25 0 M20 -4 L25 -4 M22 4 L25 4" stroke="#60a5fa" stroke-width="2"/>
+    </g>
+    
+    <!-- Fingerprint icon -->
+    <g transform="translate(1600, 200)">
+      <path d="M-15 0 Q-15 -15 0 -15 Q15 -15 15 0 Q15 15 0 15 Q-15 15 -15 0" 
+            fill="none" stroke="#60a5fa" stroke-width="2"/>
+      <path d="M-10 0 Q-10 -10 0 -10 Q10 -10 10 0 Q10 10 0 10 Q-10 10 -10 0" 
+            fill="none" stroke="#60a5fa" stroke-width="2"/>
+      <path d="M-5 0 Q-5 -5 0 -5 Q5 -5 5 0 Q5 5 0 5 Q-5 5 -5 0" 
+            fill="none" stroke="#60a5fa" stroke-width="2"/>
+    </g>
+    
+    <!-- Eye icon -->
+    <g transform="translate(200, 800)">
+      <ellipse cx="0" cy="0" rx="20" ry="12" fill="none" stroke="#60a5fa" stroke-width="2"/>
+      <circle cx="0" cy="0" r="6" fill="#60a5fa"/>
+      <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+    </g>
+    
+    <!-- Network nodes -->
+    <g transform="translate(1400, 800)">
+      <circle cx="0" cy="0" r="4" fill="#60a5fa"/>
+      <circle cx="20" cy="-10" r="4" fill="#60a5fa"/>
+      <circle cx="20" cy="10" r="4" fill="#60a5fa"/>
+      <circle cx="-20" cy="-10" r="4" fill="#60a5fa"/>
+      <circle cx="-20" cy="10" r="4" fill="#60a5fa"/>
+      <line x1="0" y1="0" x2="20" y2="-10" stroke="#60a5fa" stroke-width="2"/>
+      <line x1="0" y1="0" x2="20" y2="10" stroke="#60a5fa" stroke-width="2"/>
+      <line x1="0" y1="0" x2="-20" y2="-10" stroke="#60a5fa" stroke-width="2"/>
+      <line x1="0" y1="0" x2="-20" y2="10" stroke="#60a5fa" stroke-width="2"/>
+    </g>
+  </g>
+  
+  <!-- Binary code pattern -->
+  <g opacity="0.15" fill="#64748b" font-family="monospace" font-size="12">
+    <text x="100" y="100">01001000 01100101 01101100 01101100 01101111</text>
+    <text x="100" y="120">01010111 01101111 01110010 01101100 01100100</text>
+    <text x="100" y="140">01010011 01100101 01100011 01110101 01110010</text>
+    <text x="100" y="160">01101001 01110100 01111001 00100000 01000001</text>
+    
+    <text x="1200" y="900">11010001 10110101 11001100 10101111 11110000</text>
+    <text x="1200" y="920">10101010 11110000 10101111 11001100 10110101</text>
+    <text x="1200" y="940">11001100 10101111 11110000 10101010 11110000</text>
+    <text x="1200" y="960">10110101 11001100 10101111 11110000 10101010</text>
+  </g>
+  
+  <!-- Subtle geometric patterns -->
+  <g opacity="0.1" stroke="#64748b" stroke-width="1" fill="none">
+    <polygon points="50,50 100,25 150,50 125,100 75,100"/>
+    <polygon points="1750,950 1800,925 1850,950 1825,1000 1775,1000"/>
+    <polygon points="1750,50 1800,25 1850,50 1825,100 1775,100"/>
+    <polygon points="50,950 100,925 150,950 125,1000 75,1000"/>
+  </g>
+</svg>
